@@ -27,5 +27,7 @@
 *.out
 *.app
 
-#solution
+#configure
 *.suo
+*.sdf
+*.opensdf
