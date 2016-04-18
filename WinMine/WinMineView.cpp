@@ -28,16 +28,17 @@ BEGIN_MESSAGE_MAP(CWinMineView, CView)
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
 	ON_WM_RBUTTONUP()
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 // CWinMineView 构造/析构
 
 CWinMineView::CWinMineView()
 {
-	// TODO: 在此处添加构造代码 
-	field.SetOrigin(CPoint(10, 50));
-	field.SetType(CMineField::Hard);
-	field.InitMine();
+	// TODO: 在此处添加构造代码
+	layout.Init();
+	rules.Init(layout);
+	//SetTimer(1, 100, NULL);
 }
 
 CWinMineView::~CWinMineView()
@@ -56,8 +57,10 @@ BOOL CWinMineView::PreCreateWindow(CREATESTRUCT& cs)
 
 void CWinMineView::OnDraw(CDC* pDC)
 {
-	field.SetHwnd(GetSafeHwnd());
-	field.Draw(pDC);
+	if (!CDraw::hWnd){
+		CDraw::hWnd = GetSafeHwnd();
+	}
+	layout.Draw(pDC);
 }
 
 
@@ -87,80 +90,86 @@ CWinMineDoc* CWinMineView::GetDocument() const // 非调试版本是内联的
 
 void CWinMineView::OnLButtonDown(UINT nFlags, CPoint point)
 { 
-	int index = field.PtToIndex(point);
 	if (nFlags & MK_RBUTTON)
 	{
-		field.LRButtonPress(index);
+		rules.LRButtonPress(point);
 	}
 	else
 	{
-		field.LButtonDown(index);
+		rules.LButtonDown(point);
 	}
-	field.Invalidate();
 	CView::OnLButtonDown(nFlags, point);
 }
 
 void CWinMineView::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	int index = field.PtToIndex(point);
 	if (nFlags & MK_RBUTTON)
 	{
-		field.LRButtonUp(index);
+		rules.LRButtonUp(point);
 	}
 	else
 	{
-		field.LButtonUp(index);
+		rules.LButtonUp(point);
 	}
-	field.Invalidate();
 	CView::OnLButtonUp(nFlags, point);
 }
 
 void CWinMineView::OnRButtonDown(UINT nFlags, CPoint point)
 {
-	int index = field.PtToIndex(point);
 	if (nFlags & MK_LBUTTON)
 	{
-		field.LRButtonPress(index);
+		rules.LRButtonPress(point);
 	}
 	else
 	{
-		field.RButtonDown(index);
+		rules.RButtonDown(point);
 	}
-	field.Invalidate();
 	CView::OnRButtonDown(nFlags, point);
 }
 
 void CWinMineView::OnRButtonUp(UINT nFlags, CPoint point)
 {
-	int index = field.PtToIndex(point);
 	if (nFlags & MK_LBUTTON)
 	{
-		field.LRButtonUp(index);
+		rules.LRButtonUp(point);
 	}
-	field.Invalidate();
+	else
+	{
+		rules.RButtonUp(point);
+	}
 	CView::OnRButtonUp(nFlags, point);
 }
 
 void CWinMineView::OnRButtonDblClk(UINT nFlags, CPoint point)
 {
-	int index = field.PtToIndex(point);
-	field.RButtonDown(index);
-	field.Invalidate();
+	rules.RButtonDown(point);
+	rules.RButtonUp(point);
 	CView::OnRButtonDblClk(nFlags, point);
 }
 
 void CWinMineView::OnMouseMove(UINT nFlags, CPoint point)
 {
-	field.NotPress();
-	int index = field.PtToIndex(point);
 	if (nFlags & MK_LBUTTON)
 	{
 		if (nFlags & MK_RBUTTON)
-			field.LRButtonPress(index);
+			rules.LRButtonPress(point);
 		else
-			field.LButtonPress(index);
+			rules.LButtonPress(point);
 	}
-	field.Invalidate();
+	else
+	{
+		rules.Release();
+	}
 	CView::OnMouseMove(nFlags, point);
 }
 
+
+
+void CWinMineView::OnTimer(UINT_PTR nIDEvent)
+{
+	if (nIDEvent==1)
+	{
+		++layout.time;
+	}
+	CView::OnTimer(nIDEvent);
+}

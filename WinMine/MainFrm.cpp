@@ -39,8 +39,8 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 	cs.style = WS_OVERLAPPED | WS_CAPTION | WS_THICKFRAME | WS_SYSMENU;
 
 	//设置窗口大小
-	cs.cx = 520;
-	cs.cy = 380;
+	cs.cx = 525;
+	cs.cy = 405;
 
 	return TRUE;
 }

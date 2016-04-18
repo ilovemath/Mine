@@ -3,118 +3,68 @@
  
 CMineField::CMineField()
 {
-	easy.num = 10;
-	easy.row = 8;
-	easy.col = 8;
-
-	medium.num = 40;
-	medium.row = 16;
-	medium.col = 16;
-
-	hard.num = 99;
-	hard.row = 16;
-	hard.col = 30;
-
-	custom = hard;
-
-	type = Hard;
-	scale = GetScale();
-
-	pMine = NULL;
+	pBlocks = NULL;
 }
  
 CMineField::~CMineField(void)
 {
-	if(pMine!=NULL)
-		delete []pMine;
+	if(pBlocks!=NULL)
+		delete[]pBlocks;
 }
- 
 
-Scale CMineField::GetScale()
-{	
-	Scale scale;
-	switch (type)
+void CMineField::InitField()
+{
+	if (pBlocks != NULL)
 	{
-	case Easy:		scale=easy;		break;
-	case Medium:	scale=medium;	break;
-	case Hard:		scale=hard;		break;
-	case Custom:	scale=custom;	break;
+		delete[]pBlocks;
+		pBlocks = NULL;
 	}
-	return scale;
-}
+	scale = CLevel::GetScale();
 
-void CMineField::SetType(Type type)
-{
-	this->type = type;
-	scale = GetScale();
-}
-
-void CMineField::SetCustom(Scale custom)
-{
-	this->custom = custom;
-}
-Scale CMineField::GetCustom()
-{
-	return custom;
-}
-
-void CMineField::InitMine()
-{
-	flagged = 0;
-	if (pMine != NULL)
-	{
-		delete []pMine;
-		pMine = NULL;
-	}
-	int total = scale.row * scale.col; 
-	pMine = new CMine[total];
+	pBlocks = new CBlock[scale.total];
 	//随机产生雷的位置	
 	srand((unsigned)time(NULL));
 	int num = 0;
 	while (num < scale.num)
 	{
-		int id = rand() % total;
-		if (!pMine[id].IsMine())
-			pMine[id].SetMine();
+		int id = rand() % scale.total;
+		if (!pBlocks[id].IsMine())
+			pBlocks[id].SetMine();
 		num++;
 	}
 	
 	//遍历雷区，计算方格周边雷数
 	num = 0;
-	while (num < total)
+	while (num < scale.total)
 	{
 		int r = num / scale.col; //行
 		int c = num % scale.col; //列
-		pMine[num].SetPos(r,c);
-		if (!pMine[num].IsMine())
+		pBlocks[num].SetPos(r,c);
+		if (!pBlocks[num].IsMine())
 		{
 			for (int i = max(0,r-1); i < min(scale.row,r+2); i++)
 				for (int j = max(0,c-1); j < min(scale.col,c+2); j++)
-					if(pMine[i*scale.col+j].IsMine())
-						pMine[num].IncMine();
+					if(pBlocks[i*scale.col+j].IsMine())
+						pBlocks[num].Increase();
 		}
 		num++;
 	}
-/*	调试雷矩阵
-	CString s,t;
+	Invalidate();
+}
 
-	for (int i = 0;i<scale.row;i++){
-		for (int j = 0;j<scale.col;j++)
-		{
-			t.Format("%d ",pMine[i*scale.col+j].GetMine());
-			s+=t;
-		}
-		s+="\n";
+CBlock *CMineField::GetBlock(int index){
+	if (pBlocks)
+		return &pBlocks[index];
+	else{
+		return NULL;
 	}
-	AfxMessageBox(s);
-	*/
 }
 
 CRect CMineField::GetFieldRect()
 {
 	CPoint end(origin);
-	end.x += scale.col * CMine::width;
-	end.y += scale.row * CMine::height;
+	end.x += scale.col * CBlock::W;
+	end.y += scale.row * CBlock::H;
 	return CRect(origin,end);
 }
 
@@ -123,8 +73,8 @@ int CMineField::PtToIndex(CPoint pt)
 	if (GetFieldRect().PtInRect(pt))
 	{
 		CPoint real = pt - origin;
-		int r = real.y / CMine::height;
-		int c = real.x / CMine::width;
+		int c = real.x / CBlock::W;
+		int r = real.y / CBlock::H;
 		return scale.col * r + c;
 	}
 	else
@@ -134,9 +84,9 @@ int CMineField::PtToIndex(CPoint pt)
 
 void CMineField::Draw(CDC *pDC)
 {
-	if (pMine==NULL)
+	if (pBlocks==NULL)
 	{
-		AfxMessageBox(L"还未初始化pMine！");
+		AfxMessageBox(L"pBlocks hasn't been initialized！");
 		return;
 	}
 	CDC tmpDc;
@@ -158,8 +108,8 @@ void CMineField::Draw(CDC *pDC)
 	int total = scale.col * scale.row;
 	while (index < total)
 	{
-		CMine &m = pMine[index++];
-	    CDraw::Draw(&tmpDc, m.GetPos(),m.GetPic());
+		CBlock &m = pBlocks[index++];
+	    CDraw::Draw(&tmpDc, m.GetPos(),m);
 	}
 	pDC->StretchBlt(rt.left, rt.top, rt.Width(), rt.Height(), &tmpDc, 
 		                        0,0, rt.Width(), rt.Height(), SRCCOPY);
@@ -168,16 +118,15 @@ void CMineField::Draw(CDC *pDC)
 void CMineField::Invalidate(bool bErase)
 {
 	int index = 0;
-	int total = scale.col * scale.row;
-	while (index < total)
+	while (index < scale.total)
 	{
-		CMine &m = pMine[index++];
+		CBlock &m = pBlocks[index++];
 		if (m.IsReDraw())
 		{
 			CRect rt = m.GetPos();
 			rt.OffsetRect(origin);
 			InvalidateRect(hWnd,rt,bErase);
-			m.NotReDraw();
+			m.SetReDraw(false);
 		}
 	}
 }

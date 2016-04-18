@@ -101,40 +101,38 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Block.h" />
     <ClInclude Include="Board.h" />
     <ClInclude Include="Draw.h" />
     <ClInclude Include="Face.h" />
     <ClInclude Include="Layout.h" />
+    <ClInclude Include="Level.h" />
     <ClInclude Include="MainFrm.h" />
-    <ClInclude Include="Mine.h" />
     <ClInclude Include="MineField.h" />
-    <ClInclude Include="Picture.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Rules.h" />
-    <ClInclude Include="ScoreBoard.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TimeBoard.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="WinMine.h" />
     <ClInclude Include="WinMineDoc.h" />
     <ClInclude Include="WinMineView.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Block.cpp" />
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="Draw.cpp" />
     <ClCompile Include="Face.cpp" />
     <ClCompile Include="Layout.cpp" />
+    <ClCompile Include="Level.cpp" />
     <ClCompile Include="MainFrm.cpp" />
-    <ClCompile Include="Mine.cpp" />
     <ClCompile Include="MineField.cpp" />
-    <ClCompile Include="Picture.cpp" />
     <ClCompile Include="Rules.cpp" />
-    <ClCompile Include="ScoreBoard.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="TimeBoard.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="WinMine.cpp" />
     <ClCompile Include="WinMineDoc.cpp" />
     <ClCompile Include="WinMineView.cpp" />

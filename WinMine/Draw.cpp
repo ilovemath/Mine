@@ -1,37 +1,37 @@
 #include "stdafx.h"
 #include "Draw.h"
 
+HWND CDraw::hWnd = NULL;
+
 CDraw::CDraw()
 {
-	bitmap.LoadBitmap(IDB_VISTA_BLUE_MINE);
-}
-
-CDraw::CDraw(UINT id)
-{
-	bitmap.LoadBitmap(id);
+	origin = CPoint(0, 0);
 }
 
 CDraw::~CDraw(void)
 {
 }
 
-void CDraw::SetOrigin(CPoint origin)
+void CDraw::SetOrigin(CPoint &origin)
 {
+	rect.MoveToXY(origin);
 	this->origin = origin;
 }
 
-void CDraw::SetHwnd(HWND hWnd)
+void CDraw::SetCenterPoint(int x, int y)
 {
-	this->hWnd = hWnd;
+	SetCenterPoint(CPoint(x, y));
 }
 
-void CDraw::SetBitmap(UINT id)
+void CDraw::SetCenterPoint(CPoint point)
 {
-	bitmap.LoadBitmap(id);
+	int w = -rect.Width();
+	int h = -rect.Height();
+	point.Offset(w / 2, h / 2);
+	SetOrigin(point);
 }
 
-
-void CDraw::Draw(CDC *pDC, CRect dst, CRect src, DWORD dwRop)
+void CDraw::Draw(CDC *pDC, CRect &pos, CTexture &texture, DWORD dwRop)
 {
 	CDC Dc;
 	if (Dc.CreateCompatibleDC(pDC) == FALSE)
@@ -39,8 +39,8 @@ void CDraw::Draw(CDC *pDC, CRect dst, CRect src, DWORD dwRop)
 		AfxMessageBox(L"Cannot Create Dc");
 		return;
 	}
-	Dc.SelectObject(bitmap);
-	//dst.OffsetRect(origin);
-	pDC->StretchBlt(dst.left, dst.top, dst.Width(), dst.Height(), &Dc,
+	Dc.SelectObject(texture.bitmap);
+	CRect &src = texture.GetIconRect();
+	pDC->StretchBlt(pos.left, pos.top, pos.Width(), pos.Height(), &Dc,
 		src.left, src.top, src.Width(), src.Height(), dwRop);
 }

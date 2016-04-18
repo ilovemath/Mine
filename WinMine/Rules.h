@@ -1,34 +1,48 @@
 #pragma once
-#include "Mine.h"
-
-typedef struct {
-	int row;
-	int col;
-	int num;
-}Scale;
+#include "Face.h"
+#include "Block.h"
+#include "Level.h"
+#include "Board.h"
+#include "Layout.h"
+#include "MineField.h"
 
 class CRules
 {
 public:
 	CRules();
 	~CRules(void);
-protected:
-	//雷数组
-	CMine *pMine;
+private:
+	//笑脸按钮
+	CFace *face;
+	//数字面板
+	CBoard *time;
+	CBoard *mine;
+	//雷区
+	CMineField *field;
+
 	//雷规模
 	Scale scale;
 	//已标记雷数
 	int flagged;
+	bool stop;
+
 private:
 	int  AroundFlag(int index);
 	void Expand(int index);
+
 public:
-	void NotPress();
-	void RButtonDown(int index);
-	void LButtonDown(int index);
-	void LButtonUp(int index);
-	void LRButtonUp(int index);
-	void LButtonPress(int index);
-	void LRButtonPress(int index);
+	void Stop();
+	void Start();
+	void ReStart();
+	void Init(CLayout &layout);
+
+	void Release();
+	void RButtonDown(CPoint &point);
+	void LButtonDown(CPoint &point);
+	void RButtonUp(CPoint &point);
+	void LButtonUp(CPoint &point);
+	void LRButtonUp(CPoint &point);
+	void LButtonPress(CPoint &point);
+	void LRButtonPress(CPoint &point);
 };
 

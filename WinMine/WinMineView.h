@@ -3,7 +3,8 @@
 //
 
 #pragma once
-#include "MineField.h"
+#include "Rules.h"
+#include "Layout.h"
 
 class CWinMineView : public CView
 {
@@ -12,7 +13,9 @@ protected: // 仅从序列化创建
 	DECLARE_DYNCREATE(CWinMineView)
 
 private:
-	CMineField field;
+	CRules rules;
+	CLayout layout;
+
 // 特性
 public:
 	CWinMineDoc* GetDocument() const;
@@ -46,6 +49,7 @@ public:
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
 
 #ifndef _DEBUG  // WinMineView.cpp 中的调试版本

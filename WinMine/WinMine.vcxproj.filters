@@ -39,19 +39,10 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Mine.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="MineField.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Board.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ScoreBoard.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="TimeBoard.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Draw.h">
@@ -63,10 +54,16 @@
     <ClInclude Include="Face.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Picture.h">
+    <ClInclude Include="Layout.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Layout.h">
+    <ClInclude Include="Texture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Block.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Level.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -86,19 +83,10 @@
     <ClCompile Include="WinMineView.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Mine.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="MineField.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Board.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ScoreBoard.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="TimeBoard.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Draw.cpp">
@@ -110,10 +98,16 @@
     <ClCompile Include="Face.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Picture.cpp">
+    <ClCompile Include="Layout.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Layout.cpp">
+    <ClCompile Include="Texture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Block.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Level.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

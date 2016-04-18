@@ -5,10 +5,43 @@ CRules::CRules()
 {
 }
 
-
 CRules::~CRules(void)
 {
 
+}
+
+void CRules::Init(CLayout &layout){
+	scale = CLevel::GetScale();
+	face = &layout.face;
+	time = &layout.time;
+	mine = &layout.mine;
+	field = &layout.field;
+	ReStart();
+}
+
+void CRules::ReStart()
+{
+	Stop();
+	flagged = 0;
+	field->InitField();
+	time->SetNum(0);
+	mine->SetNum(scale.num);
+	face->SetIcon(CFace::Smile);
+	time->Invalidate();
+	mine->Invalidate();
+	face->Invalidate();
+	field->Invalidate();
+}
+
+void CRules::Stop()
+{
+	stop = true;
+	KillTimer(CDraw::hWnd, 1);
+}
+void CRules::Start()
+{
+	stop = false;
+	SetTimer(CDraw::hWnd, 1, 1000, NULL);
 }
 
 int CRules::AroundFlag(int index)
@@ -20,8 +53,8 @@ int CRules::AroundFlag(int index)
 	for (int c = max(col - 1, 0); c < min(col + 2, scale.col); c++)
 	{
 		index = r*scale.col + c;
-		CMine &m = pMine[index];
-		if (m.IsFlagged())
+		CBlock *blk = field->GetBlock(index);
+		if (blk->IsFlagged())
 			count++;
 	}
 	return count;
@@ -35,169 +68,220 @@ void CRules::Expand(int index)
 	for (int c = max(col - 1, 0); c < min(col + 2, scale.col); c++)
 	{
 		index = r*scale.col + c;
-		CMine &m = pMine[index];
+		CBlock *blk = field->GetBlock(index);
 		if (r == row&&c == col)//打开当前雷
 		{
-			m.SetPic(CMine::Num);
-			m.ForceReDraw();
+			blk->SetIcon(CBlock::Num);
+			blk->SetReDraw();
 			continue;
 		}
-		if (!m.IsOpened() && !m.IsFlagged())//没有被打开，且没有被标记
+		if (!blk->IsOpened() && !blk->IsFlagged())//没有被打开，且没有被标记
 		{
-			if (m.IsBlank())//如果为空白，则打开周边雷
+			if (blk->IsBlank())//如果为空白，则打开周边雷
 			{
 				Expand(index);
 			}
 			else//否则为数字（空白周边不可能有雷），打开
 			{
-				m.SetPic(CMine::Num);
-				m.ForceReDraw();
+				blk->SetIcon(CBlock::Num);
+				blk->SetReDraw();
 			}
 		}
 
 	}
 }
 
-void CRules::RButtonDown(int index)
+void CRules::RButtonDown(CPoint &point)
 {
+	int index = field->PtToIndex(point);
 	if (index == -1)//不在雷区
 	{
 		return;
 	}
-	CMine &m = pMine[index];
-	if (m.IsNone())
+	face->SetIcon(CFace::Amaze);
+	face->Invalidate();
+	CBlock *blk = field->GetBlock(index);
+	if (blk->IsNone())
 	{
-		m.SetPic(CMine::Flag);
-		m.ForceReDraw();
+		flagged++;
+		mine->Dec();
+		if (stop)Start();
+		blk->SetIcon(CBlock::Flag);
+		blk->SetReDraw();
 	}
-	else if (m.IsFlagged())
+	else if (blk->IsFlagged())
 	{
-		m.SetPic(CMine::Mark);
-		m.ForceReDraw();
+		flagged--;
+		mine->Inc();
+		blk->SetIcon(CBlock::Mark);
+		blk->SetReDraw();
 	}
-	else if (m.IsMarked())
+	else if (blk->IsMarked())
 	{
-		m.SetPic(CMine::None);
-		m.ForceReDraw();
+		blk->SetIcon(CBlock::None);
+		blk->SetReDraw();
 	}
+	field->Invalidate();
 }
 
-void CRules::LButtonDown(int index)
+void CRules::LButtonDown(CPoint &point)
 {
+	int index = field->PtToIndex(point);
 	if (index == -1)//不在雷区
 	{
+		if (face->PtInFace(point))
+		{
+			face->SetIcon(CFace::SPress);
+			face->Invalidate();
+		}
 		return;
 	}
-	CMine &m = pMine[index];
-	if (m.IsNone())
+	face->SetIcon(CFace::Amaze);
+	face->Invalidate();
+	CBlock *blk = field->GetBlock(index);
+	if (blk->IsNone())
 	{
-		m.SetPic(CMine::Press);
-		m.ForceReDraw();
-		return;
+		blk->SetIcon(CBlock::Press);
+		blk->SetReDraw();
 	}
-	if (m.IsMarked())
+	else if (blk->IsMarked())
 	{
-		m.SetPic(CMine::MPress);
-		m.ForceReDraw();
-		return;
+		blk->SetIcon(CBlock::MPress);
+		blk->SetReDraw();
 	}
+	field->Invalidate();
 }
 
-void CRules::LButtonUp(int index)
+void CRules::LButtonUp(CPoint &point)
 {
+	int index = field->PtToIndex(point);
 	if (index == -1)//不在雷区
 	{
+		if (face->PtInFace(point)){
+			ReStart();
+		}
 		return;
 	}
-	CMine &m = pMine[index];
-	if (m.IsFlagged())
+	face->SetIcon(CFace::Smile);
+	face->Invalidate();
+	CBlock *blk = field->GetBlock(index);
+	if (blk->IsFlagged())	//已被标记，则无反应
 	{
 		return;
 	}
-	if (m.IsMine())
-	{
-		AfxMessageBox(L"Game Over!"); 
-		return;
-	}
-	if (m.IsBlank())
+	if (stop)Start();
+	if (blk->IsBlank())		//空白，展开
 	{
 		Expand(index);
-		return;
 	}
-	if (m.IsPressed() || m.IsMPressed())
+	else if (blk->IsMine())	//踩到雷，结束
 	{
-		m.SetPic(CMine::Num);
-		m.ForceReDraw();
-		return;
+		if (!stop)Stop();
+		face->SetIcon(CFace::Sad);
+		face->Invalidate();
+		AfxMessageBox(L"Game Over!");
 	}
+	else if (blk->IsPressed() || blk->IsMPressed())
+	{
+		blk->SetIcon(CBlock::Num);
+		blk->SetReDraw();
+	}
+	field->Invalidate();
 }
 
-void CRules::LRButtonUp(int index)
+void CRules::RButtonUp(CPoint &point)
 {
-	NotPress();
+	face->SetIcon(CFace::Smile);
+	face->Invalidate();
+}
+
+void CRules::Release()
+{
+	int index = 0;
+	while (index < scale.total)
+	{
+		CBlock *blk = field->GetBlock(index);
+		if (blk->IsPressed())
+		{
+			blk->SetIcon(CBlock::None);
+			blk->SetReDraw();
+		}
+		if (blk->IsMPressed())
+		{
+			blk->SetIcon(CBlock::Mark);
+			blk->SetReDraw();
+		}
+		index++;
+	}
+	field->Invalidate();
+}
+
+void CRules::LRButtonUp(CPoint &point)
+{
+	Release();
+	int index = field->PtToIndex(point);
 	if (index == -1)//不在雷区
 	{
 		return;
 	}
-	CMine &m = pMine[index];
-	if (m.IsOpened() && !m.IsBlank() && (m.GetMine() == AroundFlag(index)))
+	face->SetIcon(CFace::Smile);
+	face->Invalidate();
+	CBlock *blk = field->GetBlock(index);
+	if (blk->IsOpened() && !blk->IsBlank() && (blk->GetNum() == AroundFlag(index)))
 	{
 		int row = index / scale.col;
 		int col = index % scale.col;
 		for (int r = max(row - 1, 0); r < min(row + 2, scale.row); r++)
 		for (int c = max(col - 1, 0); c < min(col + 2, scale.col); c++)
 		{
-			index = r*scale.col + c;
-			LButtonPress(index);
-			LButtonUp(index);
+			CBlock *blk = field->GetBlock(r*scale.col + c);
+			if (blk->IsFlagged())
+			{
+				continue;
+			}
+			if (blk->IsBlank())
+			{
+				Expand(index);
+				continue;
+			}
+			if (blk->IsMine())
+			{
+				AfxMessageBox(L"Game Over!");
+				return;
+			}
+			blk->SetIcon(CBlock::Num);
+			blk->SetReDraw();
 		}
+		field->Invalidate();
 	}
 }
 
-void CRules::NotPress()
+void CRules::LButtonPress(CPoint &point)
 {
-	int id = 0;
-	int total = scale.col * scale.row;
-	while (id < total)
-	{
-		CMine &m = pMine[id];
-		if (m.IsPressed())
-		{
-			m.SetPic(CMine::None);
-			m.ForceReDraw();
-		}
-		if (m.IsMPressed())
-		{
-			m.SetPic(CMine::Mark);
-			m.ForceReDraw();
-		}
-		id++;
-	}
-}
-
-void CRules::LButtonPress(int index)
-{
-	NotPress();
+	Release();
+	int index = field->PtToIndex(point);
 	if (index == -1)//不在雷区
 	{
 		return;
 	}
-	CMine &m = pMine[index];
-	if (m.IsNone())
+	CBlock *blk = field->GetBlock(index);
+	if (blk->IsNone())
 	{
-		m.SetPic(CMine::Press);
-		m.ForceReDraw();
+		blk->SetIcon(CBlock::Press);
+		blk->SetReDraw();
 	}
-	if (m.IsMarked())
+	else if (blk->IsMarked())
 	{
-		m.SetPic(CMine::MPress);
-		m.ForceReDraw();
+		blk->SetIcon(CBlock::MPress);
+		blk->SetReDraw();
 	}
+	field->Invalidate();
 }
 
-void CRules::LRButtonPress(int index)
+void CRules::LRButtonPress(CPoint &point)
 {
-	NotPress();
+	Release();
+	int index = field->PtToIndex(point);
 	if (index == -1)//不在雷区
 	{
 		return;
@@ -208,17 +292,17 @@ void CRules::LRButtonPress(int index)
 	for (int c = max(col - 1, 0); c < min(col + 2, scale.col); c++)
 	{
 		index = r*scale.col + c;
-		CMine &m = pMine[index];
-		if (m.IsNone())
+		CBlock *blk = field->GetBlock(index);
+		if (blk->IsNone())
 		{
-			m.SetPic(CMine::Press);
-			m.ForceReDraw();
+			blk->SetIcon(CBlock::Press);
+			blk->SetReDraw();
 		}
-		if (m.IsMarked())
+		else if (blk->IsMarked())
 		{
-			m.SetPic(CMine::MPress);
-			m.ForceReDraw();
+			blk->SetIcon(CBlock::MPress);
+			blk->SetReDraw();
 		}
 	}
-
+	field->Invalidate();
 }
